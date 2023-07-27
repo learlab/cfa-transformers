@@ -3,3 +3,4 @@ data/
 bin/
 results/
 src/__*
+.venv
