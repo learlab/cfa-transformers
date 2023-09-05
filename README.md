@@ -4,17 +4,6 @@ This repository contains code associated with a manuscript in progress. The goal
 
 ## Using this repository
 
-This repository is tested with Python version 3.10. It has the following package dependencies:
-
-- pandas
-- seaborn
-- datasets
-- transformers
-- scikit-learn
-- torch
-- captum
-- wandb
-
-To install these dependencies, run the following command:
+This repository is tested with Python version 3.10. To install the dependencies, run the following command:
 
 `pip install -r requirements.txt`
