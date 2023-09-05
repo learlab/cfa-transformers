@@ -8,3 +8,4 @@ wandb
 tqdm
 torch
 captum
+levenshtein
