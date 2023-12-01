@@ -1,4 +1,9 @@
-# Confirmatory Factor Analysis
+---
+title: "Confirmatory Factor Analysis"
+format: html
+execute:
+  warning: false
+---
 
 ```{r}
 library(conflicted)  
@@ -9,19 +14,31 @@ conflict_prefer("lag", "dplyr")
 
 
 ```{r}
-df <- read_csv("~/active-projects/ellipse-methods-showcase/results/cfa.csv", show_col_types = FALSE) %>% 
+data_path <- "~/active-projects/ellipse-methods-showcase/results/cfa.csv"
+data_path <- "~/active-projects/ellipse-methods-showcase/results/ensemble-cfa.csv"
+
+df <- read_csv(data_path, show_col_types = FALSE) %>% 
   rename_all(make.names)
 ```
 
 ```{r}
 library(lavaan)
+library(lavaanPlot)
 
-vocab_spec <- ' vocab_human  =~ Vocabulary_1 + Vocabulary_2
-              vocab_llm =~ vocabulary.model.0 + vocabulary.model.1 + vocabulary.model.2 + vocabulary.model.3 + vocabulary.model.4 '
+spec.grammar <- 
+' human =~ Grammar_1 + Grammar_2
+  llm =~ bert + deberta + xlm '
 
-fit <- cfa(vocab_spec, data = df, std.lv=TRUE)
+fit.grammar <- cfa(spec.grammar, data = df, std.lv=TRUE)
 
-summary(fit, fit.measures = FALSE)
+summary(fit.grammar, fit.measures = TRUE)
+
+labels <- list(Grammar_1 = "Rater 1", Grammar_2 = "Rater 2", human = "Grammar (human)", bert = "BERT", deberta = "DeBERTa", xlm = "XLM", llm = "Grammar (LLM)")
+lavaanPlot(model = fit.grammar, labels = labels, coefs = TRUE, stand = TRUE, sig = 0.05, covs=TRUE)
 ```
 
+```{r}
+labels <- list(Grammar_1 = "Rater 1", Grammar_2 = "Rater 2", human = "Proficiency (Human)", bert = "LLM 1", deberta = "LLM 2", xlm = "LLM 3", llm = "Proficiency (LLM)")
+lavaanPlot(model = fit.grammar, labels = labels, covs=TRUE)
+```
 
