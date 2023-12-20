@@ -8,37 +8,44 @@ execute:
 ```{r}
 library(conflicted)  
 library(tidyverse)
+library(glue)
 conflict_prefer("filter", "dplyr")
 conflict_prefer("lag", "dplyr")
 ```
 
 
 ```{r}
-data_path <- "~/active-projects/ellipse-methods-showcase/results/cfa.csv"
-data_path <- "~/active-projects/ellipse-methods-showcase/results/ensemble-cfa.csv"
+data_path <- "~/active-projects/ellipse-methods-showcase/results/deberta-cfa.csv"
 
 df <- read_csv(data_path, show_col_types = FALSE) %>% 
-  rename_all(make.names)
+  rename_all(make.names) %>% 
+  rename_all(tolower)
+  # mutate(across(starts_with("deberta"), round)) # worse.
 ```
+
 
 ```{r}
 library(lavaan)
 library(lavaanPlot)
 
-spec.grammar <- 
-' human =~ Grammar_1 + Grammar_2
-  llm =~ bert + deberta + xlm '
+scores <- c("overall", "cohesion", "syntax", "vocabulary", "phraseology", "grammar", "conventions")
 
-fit.grammar <- cfa(spec.grammar, data = df, std.lv=TRUE)
+fit_cfa <- function(score_to_model) {
+  spec <- glue(
+    ' human =~ {score_to_model}_1 + {score_to_model}_2
+      llm =~ deberta_{score_to_model}_1 + deberta_{score_to_model}_2 '
+  )
+  fit <- cfa(spec, data = df, std.lv=TRUE)
+  cased_score <- str_to_sentence(score_to_model)
+  labels <- list("Rater 1", "Rater 2", glue("{cased_score} (human)"), "DeBERTa 1", "DeBERTa 2", glue("{cased_score} (LLM)"))
+  names(labels) <- c(
+    glue("{score_to_model}_1"), glue("{score_to_model}_2"), "human",
+    glue("deberta_{score_to_model}_1"), glue("deberta_{score_to_model}_2"), "llm")
+  
+  lavaanPlot(model=fit, labels=labels, coefs=TRUE, stand=TRUE, sig=0.05, covs=TRUE)
+  
+  # return(fit)
+}
 
-summary(fit.grammar, fit.measures = TRUE)
-
-labels <- list(Grammar_1 = "Rater 1", Grammar_2 = "Rater 2", human = "Grammar (human)", bert = "BERT", deberta = "DeBERTa", xlm = "XLM", llm = "Grammar (LLM)")
-lavaanPlot(model = fit.grammar, labels = labels, coefs = TRUE, stand = TRUE, sig = 0.05, covs=TRUE)
+fit_cfa("overall")
 ```
-
-```{r}
-labels <- list(Grammar_1 = "Rater 1", Grammar_2 = "Rater 2", human = "Proficiency (Human)", bert = "LLM 1", deberta = "LLM 2", xlm = "LLM 3", llm = "Proficiency (LLM)")
-lavaanPlot(model = fit.grammar, labels = labels, covs=TRUE)
-```
-
