@@ -7,3 +7,5 @@ src/__*
 .Rproj.user
 *.Rproj
 *renv*
+*.png
+cfa_files
