@@ -120,18 +120,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename_all</span>(make.names) <span class="sc">%&gt;%</span> </span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename_all</span>(tolower) <span class="sc">%&gt;%</span> </span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">"deberta"</span>), round)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">"overall_"</span>), round)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(overall_1 <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">matches</span>(<span class="st">".*_[12]$"</span>), \(x) <span class="fu">factor</span>(</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    x,</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ordered=</span><span class="cn">TRUE</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"0"</span>, <span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>)</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    )))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="eda" class="level2">
 <h2 class="anchored" data-anchor-id="eda">EDA</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> overall_1, <span class="at">fill=</span>overall_1)) <span class="sc">+</span></span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> overall_2, <span class="at">fill=</span>overall_2)) <span class="sc">+</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">show.legend=</span><span class="cn">FALSE</span>) <span class="sc">+</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_d</span>() <span class="sc">+</span></span>
@@ -192,9 +192,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_perf_stats</span>(df<span class="sc">$</span>overall_1, df<span class="sc">$</span>deberta_overall_1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-Kendall Tau: 0.599 Lower: 0.565 Upper: 0.633
-Odds-ratio of agreement: 3.988
-Squared Rho: 0.407</code></pre>
+Kendall Tau: 0.596 Lower: 0.561 Upper: 0.63
+Odds-ratio of agreement: 3.95
+Squared Rho: 0.402</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">Rater 2 vs Model 2"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -205,9 +205,9 @@ Rater 2 vs Model 2</code></pre>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_perf_stats</span>(df<span class="sc">$</span>overall_2, df<span class="sc">$</span>deberta_overall_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-Kendall Tau: 0.531 Lower: 0.493 Upper: 0.568
-Odds-ratio of agreement: 3.264
-Squared Rho: 0.321</code></pre>
+Kendall Tau: 0.526 Lower: 0.489 Upper: 0.564
+Odds-ratio of agreement: 3.219
+Squared Rho: 0.316</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">Rater 1 vs Rater 2"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -218,9 +218,9 @@ Rater 1 vs Rater 2</code></pre>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_perf_stats</span>(df<span class="sc">$</span>overall_1, df<span class="sc">$</span>overall_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-Kendall Tau: 0.536 Lower: 0.504 Upper: 0.569
-Odds-ratio of agreement: 3.31
-Squared Rho: 0.343</code></pre>
+Kendall Tau: 0.53 Lower: 0.497 Upper: 0.562
+Odds-ratio of agreement: 3.255
+Squared Rho: 0.335</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">Model 1 vs Model 2"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -231,9 +231,9 @@ Model 1 vs Model 2</code></pre>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_perf_stats</span>(df<span class="sc">$</span>deberta_overall_1, df<span class="sc">$</span>deberta_overall_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-Kendall Tau: 0.796 Lower: 0.769 Upper: 0.824
-Odds-ratio of agreement: 8.804
-Squared Rho: 0.665</code></pre>
+Kendall Tau: 0.794 Lower: 0.766 Upper: 0.822
+Odds-ratio of agreement: 8.709
+Squared Rho: 0.661</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>df <span class="sc">%&gt;%</span> </span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(overall_1, overall_2, deberta_overall_1, deberta_overall_2) <span class="sc">%&gt;%</span> </span>
@@ -251,8 +251,8 @@ Squared Rho: 0.665</code></pre>
 <section id="fit-models" class="level1">
 <h1>Fit Models</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="st">' overall =~ overall_1 + overall_2</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="st">    + deberta_overall_1 + deberta_overall_2'</span></span>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="st">' overall =~ a*overall_1 + a*overall_2</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="st">    + b*deberta_overall_1 + b*deberta_overall_2'</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># std.lv fixes the variance of latent factors to 1</span></span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co"># required for model to be identified</span></span>
@@ -267,15 +267,15 @@ Squared Rho: 0.665</code></pre>
 <span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>fit1.ss <span class="ot">&lt;-</span> <span class="fu">standardizedSolution</span>(fit1)</span>
 <span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">cfa</span>(</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">' human =~ overall_1 + overall_2</span></span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="st">    llm =~ deberta_overall_1 + deberta_overall_2</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">' human =~ a*overall_1 + a*overall_2</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="st">    llm =~ b*deberta_overall_1 + b*deberta_overall_2</span></span>
 <span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="st">  '</span>,</span>
 <span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">data=</span>df,</span>
 <span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">std.lv=</span><span class="cn">TRUE</span>,</span>
 <span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">ordered=</span><span class="cn">TRUE</span>,</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator=</span><span class="st">"DWLS"</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator=</span><span class="st">"ULS"</span></span>
 <span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>fit2.labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Rater 1"</span>, <span class="st">"Rater 2"</span>, <span class="st">"Deberta 1"</span>, <span class="st">"Deberta 2"</span>, <span class="st">"Overall</span><span class="sc">\n</span><span class="st">(Human)"</span>, <span class="st">"Overall</span><span class="sc">\n</span><span class="st">(AES)"</span>)</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>fit2.labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Rater 1"</span>, <span class="st">"Rater 2"</span>, <span class="st">"Deberta 1"</span>, <span class="st">"Deberta 2"</span>, <span class="st">"Overall</span><span class="sc">\n</span><span class="st">(Human)"</span>, <span class="st">"Overall</span><span class="sc">\n</span><span class="st">(LLM)"</span>)</span>
 <span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>fit2.ss <span class="ot">&lt;-</span> <span class="fu">standardizedSolution</span>(fit2)</span>
 <span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit1, <span class="at">fit.measures =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -283,38 +283,39 @@ Squared Rho: 0.665</code></pre>
 
   Estimator                                        ULS
   Optimization method                           NLMINB
-  Number of model parameters                        24
+  Number of model parameters                        20
+  Number of equality constraints                     2
 
-  Number of observations                          1332
+  Number of observations                          1326
 
 Model Test User Model:
                                                       
-  Test statistic                                10.621
-  Degrees of freedom                                 2
+  Test statistic                                10.953
+  Degrees of freedom                                 4
   P-value (Unknown)                                 NA
 
 Model Test Baseline Model:
 
-  Test statistic                              5004.345
+  Test statistic                              4913.247
   Degrees of freedom                                 6
   P-value                                           NA
 
 User Model versus Baseline Model:
 
-  Comparative Fit Index (CFI)                    0.998
-  Tucker-Lewis Index (TLI)                       0.995
+  Comparative Fit Index (CFI)                    0.999
+  Tucker-Lewis Index (TLI)                       0.998
 
 Root Mean Square Error of Approximation:
 
-  RMSEA                                          0.057
-  90 Percent confidence interval - lower         0.027
-  90 Percent confidence interval - upper         0.093
-  P-value H_0: RMSEA &lt;= 0.050                    0.307
-  P-value H_0: RMSEA &gt;= 0.080                    0.157
+  RMSEA                                          0.036
+  90 Percent confidence interval - lower         0.011
+  90 Percent confidence interval - upper         0.063
+  P-value H_0: RMSEA &lt;= 0.050                    0.779
+  P-value H_0: RMSEA &gt;= 0.080                    0.002
 
 Standardized Root Mean Square Residual:
 
-  SRMR                                           0.028
+  SRMR                                           0.029
 
 Parameter Estimates:
 
@@ -326,63 +327,60 @@ Parameter Estimates:
 Latent Variables:
                    Estimate  Std.Err  z-value  P(&gt;|z|)
   overall =~                                          
-    overall_1         0.825    0.019   43.243    0.000
-    overall_2         0.810    0.019   42.840    0.000
-    deberta_vrll_1    0.978    0.021   46.119    0.000
-    deberta_vrll_2    0.940    0.021   45.572    0.000
+    overall_1  (a)    0.810    0.013   64.437    0.000
+    overall_2  (a)    0.810    0.013   64.437    0.000
+    dbrt_vrl_1 (b)    0.960    0.013   76.426    0.000
+    dbrt_vrl_2 (b)    0.960    0.013   76.426    0.000
 
 Thresholds:
                    Estimate  Std.Err  z-value  P(&gt;|z|)
-    overall_1|t1     -2.612    0.027  -95.283    0.000
-    overall_1|t2     -2.365    0.027  -86.291    0.000
-    overall_1|t3     -0.923    0.027  -33.684    0.000
-    overall_1|t4      0.414    0.027   15.114    0.000
-    overall_1|t5      1.869    0.027   68.203    0.000
-    overall_2|t1     -2.612    0.027  -95.283    0.000
-    overall_2|t2     -2.308    0.027  -84.188    0.000
-    overall_2|t3     -0.912    0.027  -33.266    0.000
-    overall_2|t4      0.561    0.027   20.452    0.000
-    overall_2|t5      1.828    0.027   66.686    0.000
-    dbrt_vrll_1|t1   -3.174    0.027 -115.811    0.000
-    dbrt_vrll_1|t2   -2.747    0.027 -100.235    0.000
-    dbrt_vrll_1|t3   -1.383    0.027  -50.456    0.000
-    dbrt_vrll_1|t4    0.222    0.027    8.099    0.000
-    dbrt_vrll_1|t5    2.033    0.027   74.173    0.000
-    dbrt_vrll_2|t1   -3.174    0.027 -115.811    0.000
-    dbrt_vrll_2|t2   -2.747    0.027 -100.235    0.000
-    dbrt_vrll_2|t3   -1.364    0.027  -49.750    0.000
-    dbrt_vrll_2|t4    0.472    0.027   17.235    0.000
-    dbrt_vrll_2|t5    2.365    0.027   86.291    0.000
+    overall_1|t1     -2.610    0.027  -95.012    0.000
+    overall_1|t2     -0.938    0.027  -34.132    0.000
+    overall_1|t3      0.410    0.027   14.927    0.000
+    overall_1|t4      1.867    0.027   67.976    0.000
+    overall_2|t1     -2.510    0.027  -91.373    0.000
+    overall_2|t2     -0.926    0.027  -33.707    0.000
+    overall_2|t3      0.557    0.027   20.267    0.000
+    overall_2|t4      1.826    0.027   66.462    0.000
+    dbrt_vrll_1|t1   -3.173    0.027 -115.502    0.000
+    dbrt_vrll_1|t2   -1.400    0.027  -50.976    0.000
+    dbrt_vrll_1|t3    0.217    0.027    7.906    0.000
+    dbrt_vrll_1|t4    2.031    0.027   73.938    0.000
+    dbrt_vrll_2|t1   -3.173    0.027 -115.502    0.000
+    dbrt_vrll_2|t2   -1.381    0.027  -50.252    0.000
+    dbrt_vrll_2|t3    0.468    0.027   17.049    0.000
+    dbrt_vrll_2|t4    2.364    0.027   86.035    0.000
 
 Variances:
                    Estimate  Std.Err  z-value  P(&gt;|z|)
-   .overall_1         0.320                           
-   .overall_2         0.345                           
-   .deberta_vrll_1    0.043                           
-   .deberta_vrll_2    0.116                           
+   .overall_1         0.344                           
+   .overall_2         0.344                           
+   .deberta_vrll_1    0.078                           
+   .deberta_vrll_2    0.078                           
     overall           1.000                           </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit2, <span class="at">fit.measures =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>lavaan 0.6.17 ended normally after 15 iterations
+<pre><code>lavaan 0.6.17 ended normally after 9 iterations
 
-  Estimator                                       DWLS
+  Estimator                                        ULS
   Optimization method                           NLMINB
-  Number of model parameters                        25
+  Number of model parameters                        21
+  Number of equality constraints                     2
 
-  Number of observations                          1332
+  Number of observations                          1326
 
 Model Test User Model:
                                                       
-  Test statistic                                 1.442
-  Degrees of freedom                                 1
-  P-value (Chi-square)                           0.230
+  Test statistic                                 2.423
+  Degrees of freedom                                 3
+  P-value (Unknown)                                 NA
 
 Model Test Baseline Model:
 
-  Test statistic                             36779.533
+  Test statistic                              4913.247
   Degrees of freedom                                 6
-  P-value                                        0.000
+  P-value                                           NA
 
 User Model versus Baseline Model:
 
@@ -391,15 +389,15 @@ User Model versus Baseline Model:
 
 Root Mean Square Error of Approximation:
 
-  RMSEA                                          0.018
+  RMSEA                                          0.000
   90 Percent confidence interval - lower         0.000
-  90 Percent confidence interval - upper         0.078
-  P-value H_0: RMSEA &lt;= 0.050                    0.735
-  P-value H_0: RMSEA &gt;= 0.080                    0.043
+  90 Percent confidence interval - upper         0.043
+  P-value H_0: RMSEA &lt;= 0.050                    0.980
+  P-value H_0: RMSEA &gt;= 0.080                    0.000
 
 Standardized Root Mean Square Residual:
 
-  SRMR                                           0.006
+  SRMR                                           0.014
 
 Parameter Estimates:
 
@@ -411,46 +409,42 @@ Parameter Estimates:
 Latent Variables:
                    Estimate  Std.Err  z-value  P(&gt;|z|)
   human =~                                            
-    overall_1         0.859    0.015   55.643    0.000
-    overall_2         0.845    0.015   55.643    0.000
+    overall_1  (a)    0.842    0.016   51.658    0.000
+    overall_2  (a)    0.842    0.016   51.658    0.000
   llm =~                                              
-    deberta_vrll_1    1.000    0.011   90.389    0.000
-    deberta_vrll_2    0.962    0.011   90.389    0.000
+    dbrt_vrl_1 (b)    0.980    0.014   69.940    0.000
+    dbrt_vrl_2 (b)    0.980    0.014   69.940    0.000
 
 Covariances:
                    Estimate  Std.Err  z-value  P(&gt;|z|)
   human ~~                                            
-    llm               0.909    0.017   54.676    0.000
+    llm               0.914    0.028   33.146    0.000
 
 Thresholds:
                    Estimate  Std.Err  z-value  P(&gt;|z|)
-    overall_1|t1     -2.612    0.139  -18.746    0.000
-    overall_1|t2     -2.365    0.106  -22.217    0.000
-    overall_1|t3     -0.923    0.040  -22.943    0.000
-    overall_1|t4      0.414    0.035   11.687    0.000
-    overall_1|t5      1.869    0.068   27.446    0.000
-    overall_2|t1     -2.612    0.139  -18.746    0.000
-    overall_2|t2     -2.308    0.100  -22.979    0.000
-    overall_2|t3     -0.912    0.040  -22.748    0.000
-    overall_2|t4      0.561    0.036   15.406    0.000
-    overall_2|t5      1.828    0.066   27.704    0.000
-    dbrt_vrll_1|t1   -3.174    0.290  -10.938    0.000
-    dbrt_vrll_1|t2   -2.747    0.164  -16.775    0.000
-    dbrt_vrll_1|t3   -1.383    0.049  -27.988    0.000
-    dbrt_vrll_1|t4    0.222    0.035    6.404    0.000
-    dbrt_vrll_1|t5    2.033    0.078   26.113    0.000
-    dbrt_vrll_2|t1   -3.174    0.290  -10.938    0.000
-    dbrt_vrll_2|t2   -2.747    0.164  -16.775    0.000
-    dbrt_vrll_2|t3   -1.364    0.049  -27.888    0.000
-    dbrt_vrll_2|t4    0.472    0.036   13.202    0.000
-    dbrt_vrll_2|t5    2.365    0.106   22.217    0.000
+    overall_1|t1     -2.610    0.027  -95.012    0.000
+    overall_1|t2     -0.938    0.027  -34.132    0.000
+    overall_1|t3      0.410    0.027   14.927    0.000
+    overall_1|t4      1.867    0.027   67.976    0.000
+    overall_2|t1     -2.510    0.027  -91.373    0.000
+    overall_2|t2     -0.926    0.027  -33.707    0.000
+    overall_2|t3      0.557    0.027   20.267    0.000
+    overall_2|t4      1.826    0.027   66.462    0.000
+    dbrt_vrll_1|t1   -3.173    0.027 -115.502    0.000
+    dbrt_vrll_1|t2   -1.400    0.027  -50.976    0.000
+    dbrt_vrll_1|t3    0.217    0.027    7.906    0.000
+    dbrt_vrll_1|t4    2.031    0.027   73.938    0.000
+    dbrt_vrll_2|t1   -3.173    0.027 -115.502    0.000
+    dbrt_vrll_2|t2   -1.381    0.027  -50.252    0.000
+    dbrt_vrll_2|t3    0.468    0.027   17.049    0.000
+    dbrt_vrll_2|t4    2.364    0.027   86.035    0.000
 
 Variances:
                    Estimate  Std.Err  z-value  P(&gt;|z|)
-   .overall_1         0.262                           
-   .overall_2         0.286                           
-   .deberta_vrll_1    0.000                           
-   .deberta_vrll_2    0.074                           
+   .overall_1         0.290                           
+   .overall_2         0.290                           
+   .deberta_vrll_1    0.039                           
+   .deberta_vrll_2    0.039                           
     human             1.000                           
     llm               1.000                           </code></pre>
 </div>
@@ -459,7 +453,7 @@ Variances:
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fitMeasures</span>(fit1, <span class="fu">c</span>(<span class="st">"cfi"</span>,<span class="st">"rmsea"</span>, <span class="st">"rmsea.ci.lower"</span>, <span class="st">"rmsea.ci.upper"</span>, <span class="st">"srmr"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           cfi          rmsea rmsea.ci.lower rmsea.ci.upper           srmr 
-         0.998          0.057          0.027          0.093          0.028 </code></pre>
+         0.999          0.036          0.011          0.063          0.029 </code></pre>
 </div>
 </div>
 <div class="cell">
@@ -470,13 +464,13 @@ Variances:
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span> </span>
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>    lhs op rhs   est    se      z pvalue ci.lower ci.upper
-1 human ~~ llm 0.909 0.017 54.676      0    0.877    0.942</code></pre>
+<pre><code>    lhs op rhs label   est    se      z pvalue ci.lower ci.upper
+1 human ~~ llm       0.914 0.028 33.146      0     0.86    0.968</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fitMeasures</span>(fit2, <span class="fu">c</span>(<span class="st">"cfi"</span>,<span class="st">"rmsea"</span>, <span class="st">"rmsea.ci.lower"</span>, <span class="st">"rmsea.ci.upper"</span>, <span class="st">"srmr"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           cfi          rmsea rmsea.ci.lower rmsea.ci.upper           srmr 
-         1.000          0.018          0.000          0.078          0.006 </code></pre>
+         1.000          0.000          0.000          0.043          0.014 </code></pre>
 </div>
 </div>
 </section>
@@ -519,10 +513,10 @@ lhs
 rhs
 </td>
 <td>
-est.std
+label
 </td>
 <td>
-se
+est.std
 </td>
 </tr>
 <tr>
@@ -537,10 +531,10 @@ overall
 overall_1
 </td>
 <td>
-.825
+a
 </td>
 <td>
-.019
+.810
 </td>
 </tr>
 <tr>
@@ -551,10 +545,10 @@ overall
 overall_2
 </td>
 <td>
-.810
+a
 </td>
 <td>
-.019
+.810
 </td>
 </tr>
 <tr>
@@ -565,10 +559,10 @@ overall
 deberta_overall_1
 </td>
 <td>
-.978
+b
 </td>
 <td>
-.021
+.960
 </td>
 </tr>
 <tr>
@@ -579,10 +573,10 @@ overall
 deberta_overall_2
 </td>
 <td>
-.940
+b
 </td>
 <td>
-.021
+.960
 </td>
 </tr>
 <tr>
@@ -610,10 +604,10 @@ lhs
 rhs
 </td>
 <td>
-est.std
+label
 </td>
 <td>
-se
+est.std
 </td>
 </tr>
 <tr>
@@ -628,10 +622,10 @@ human
 overall_1
 </td>
 <td>
-.859
+a
 </td>
 <td>
-.015
+.842
 </td>
 </tr>
 <tr>
@@ -642,10 +636,10 @@ human
 overall_2
 </td>
 <td>
-.845
+a
 </td>
 <td>
-.015
+.842
 </td>
 </tr>
 <tr>
@@ -656,10 +650,10 @@ llm
 deberta_overall_1
 </td>
 <td>
-1.000
+b
 </td>
 <td>
-.011
+.980
 </td>
 </tr>
 <tr>
@@ -670,10 +664,10 @@ llm
 deberta_overall_2
 </td>
 <td>
-.962
+b
 </td>
 <td>
-.011
+.980
 </td>
 </tr>
 <tr>
@@ -730,20 +724,20 @@ deberta_overall_2
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">inspect</span>(fit1,<span class="at">what=</span><span class="st">"std"</span>)<span class="sc">$</span>lambda</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                  overll
-overall_1          0.825
-overall_2          0.810
-deberta_overall_1  0.978
-deberta_overall_2  0.940</code></pre>
+overall_1           0.81
+overall_2           0.81
+deberta_overall_1   0.96
+deberta_overall_2   0.96</code></pre>
 </div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">inspect</span>(fit2,<span class="at">what=</span><span class="st">"std"</span>)<span class="sc">$</span>lambda</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                  human   llm
-overall_1         0.859 0.000
-overall_2         0.845 0.000
-deberta_overall_1 0.000 1.000
-deberta_overall_2 0.000 0.962</code></pre>
+<pre><code>                  human  llm
+overall_1         0.842 0.00
+overall_2         0.842 0.00
+deberta_overall_1 0.000 0.98
+deberta_overall_2 0.000 0.98</code></pre>
 </div>
 </div>
 </section>
@@ -753,14 +747,14 @@ deberta_overall_2 0.000 0.962</code></pre>
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">AVE</span>(fit1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>overall 
-  0.794 </code></pre>
+  0.789 </code></pre>
 </div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">AVE</span>(fit2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>human   llm 
-0.726 0.963 </code></pre>
+0.710 0.961 </code></pre>
 </div>
 </div>
 </section>

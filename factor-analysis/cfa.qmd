@@ -31,19 +31,20 @@ df <- read_csv(data_path, show_col_types = FALSE) %>%
   rename_all(make.names) %>% 
   rename_all(tolower) %>% 
   mutate(across(starts_with("deberta"), round)) %>%
-  mutate(across(starts_with("overall_"), round)) %>%
+  filter(overall_1 > 0) %>%
   mutate(across(matches(".*_[12]$"), \(x) factor(
     x,
     ordered=TRUE,
-    levels=0:5,
-    labels=c("0", "1", "2", "3", "4", "5")
+    levels=1:5,
+    labels=c("1", "2", "3", "4", "5")
     )))
+  
 ```
 
 ## EDA
 
 ```{r}
-ggplot(df, aes(x = overall_1, fill=overall_1)) +
+ggplot(df, aes(x = overall_2, fill=overall_2)) +
   geom_bar(show.legend=FALSE) +
   theme_minimal() +
   scale_fill_viridis_d() +
@@ -113,8 +114,8 @@ df %>%
 # Fit Models
 
 ```{r}
-spec <- ' overall =~ overall_1 + overall_2
-    + deberta_overall_1 + deberta_overall_2'
+spec <- ' overall =~ a*overall_1 + a*overall_2
+    + b*deberta_overall_1 + b*deberta_overall_2'
 
 # std.lv fixes the variance of latent factors to 1
 # required for model to be identified
@@ -129,15 +130,15 @@ fit1.labels <- c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2", "Overall")
 fit1.ss <- standardizedSolution(fit1)
 
 fit2 <- cfa(
-  ' human =~ overall_1 + overall_2
-    llm =~ deberta_overall_1 + deberta_overall_2
+  ' human =~ a*overall_1 + a*overall_2
+    llm =~ b*deberta_overall_1 + b*deberta_overall_2
   ',
   data=df,
   std.lv=TRUE,
   ordered=TRUE,
-  estimator="DWLS"
+  estimator="ULS"
   )
-fit2.labels <- c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2", "Overall\n(Human)", "Overall\n(AES)")
+fit2.labels <- c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2", "Overall\n(Human)", "Overall\n(LLM)")
 fit2.ss <- standardizedSolution(fit2)
 summary(fit1, fit.measures = TRUE)
 summary(fit2, fit.measures = TRUE)
