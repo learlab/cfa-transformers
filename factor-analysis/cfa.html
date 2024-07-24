@@ -263,7 +263,7 @@ Squared Rho: 0.661</code></pre>
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">ordered=</span><span class="cn">TRUE</span>,</span>
 <span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator=</span><span class="st">"ULS"</span></span>
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>fit1.labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Rater 1"</span>, <span class="st">"Rater 2"</span>, <span class="st">"Deberta 1"</span>, <span class="st">"Deberta 2"</span>, <span class="st">"Overall"</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>fit1.labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Human 1"</span>, <span class="st">"Human 2"</span>, <span class="st">"LLM 1"</span>, <span class="st">"LLM 2"</span>, <span class="st">"Proficiency"</span>)</span>
 <span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>fit1.ss <span class="ot">&lt;-</span> <span class="fu">standardizedSolution</span>(fit1)</span>
 <span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">cfa</span>(</span>
@@ -275,7 +275,7 @@ Squared Rho: 0.661</code></pre>
 <span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">ordered=</span><span class="cn">TRUE</span>,</span>
 <span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator=</span><span class="st">"ULS"</span></span>
 <span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>fit2.labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Rater 1"</span>, <span class="st">"Rater 2"</span>, <span class="st">"Deberta 1"</span>, <span class="st">"Deberta 2"</span>, <span class="st">"Overall</span><span class="sc">\n</span><span class="st">(Human)"</span>, <span class="st">"Overall</span><span class="sc">\n</span><span class="st">(LLM)"</span>)</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>fit2.labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Human 1"</span>, <span class="st">"Human 2"</span>, <span class="st">"LLM 1"</span>, <span class="st">"LLM 2"</span>, <span class="st">"Proficiency</span><span class="sc">\n</span><span class="st">(Human)"</span>, <span class="st">"Proficiency</span><span class="sc">\n</span><span class="st">(LLM)"</span>)</span>
 <span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>fit2.ss <span class="ot">&lt;-</span> <span class="fu">standardizedSolution</span>(fit2)</span>
 <span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit1, <span class="at">fit.measures =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -755,6 +755,130 @@ deberta_overall_2 0.000 0.98</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>human   llm 
 0.710 0.961 </code></pre>
+</div>
+</div>
+</section>
+<section id="method-variance-model" class="level2">
+<h2 class="anchored" data-anchor-id="method-variance-model">Method Variance Model</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>spec3 <span class="ot">&lt;-</span> <span class="st">' overall =~ overall_1 + overall_2</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="st">    + deberta_overall_1 + deberta_overall_2</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="st">    # overall_1 ~~ overall_2</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="st">    deberta_overall_1 ~~ deberta_overall_2</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="st">'</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co"># std.lv fixes the variance of latent factors to 1</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="co"># required for model to be identified</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span> <span class="fu">cfa</span>(</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>  spec3,</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> df,</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">std.lv=</span><span class="cn">TRUE</span>,</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">ordered=</span><span class="cn">TRUE</span>,</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator=</span><span class="st">"ULS"</span></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>fit3.labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Rater 1"</span>, <span class="st">"Rater 2"</span>, <span class="st">"Deberta 1"</span>, <span class="st">"Deberta 2"</span>, <span class="st">"Overall"</span>)</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>fit3.ss <span class="ot">&lt;-</span> <span class="fu">standardizedSolution</span>(fit3)</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">summary</span>(fit3, <span class="at">fit.measures =</span> <span class="cn">TRUE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>lavaan 0.6.17 ended normally after 10 iterations
+
+  Estimator                                        ULS
+  Optimization method                           NLMINB
+  Number of model parameters                        21
+
+  Number of observations                          1326
+
+Model Test User Model:
+                                                      
+  Test statistic                                 0.540
+  Degrees of freedom                                 1
+  P-value (Unknown)                                 NA
+
+Model Test Baseline Model:
+
+  Test statistic                              4913.247
+  Degrees of freedom                                 6
+  P-value                                           NA
+
+User Model versus Baseline Model:
+
+  Comparative Fit Index (CFI)                    1.000
+  Tucker-Lewis Index (TLI)                       1.001
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.000
+  90 Percent confidence interval - lower         0.000
+  90 Percent confidence interval - upper         0.065
+  P-value H_0: RMSEA &lt;= 0.050                    0.866
+  P-value H_0: RMSEA &gt;= 0.080                    0.015
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.006
+
+Parameter Estimates:
+
+  Parameterization                               Delta
+  Standard errors                             Standard
+  Information                                 Expected
+  Information saturated (h1) model        Unstructured
+
+Latent Variables:
+                   Estimate  Std.Err  z-value  P(&gt;|z|)
+  overall =~                                          
+    overall_1         0.851    0.023   37.643    0.000
+    overall_2         0.833    0.022   37.643    0.000
+    deberta_vrll_1    0.916    0.029   31.495    0.000
+    deberta_vrll_2    0.876    0.029   30.605    0.000
+
+Covariances:
+                       Estimate  Std.Err  z-value  P(&gt;|z|)
+ .deberta_overall_1 ~~                                    
+   .deberta_vrll_2        0.158    0.051    3.112    0.002
+
+Thresholds:
+                   Estimate  Std.Err  z-value  P(&gt;|z|)
+    overall_1|t1     -2.610    0.027  -95.012    0.000
+    overall_1|t2     -0.938    0.027  -34.132    0.000
+    overall_1|t3      0.410    0.027   14.927    0.000
+    overall_1|t4      1.867    0.027   67.976    0.000
+    overall_2|t1     -2.510    0.027  -91.373    0.000
+    overall_2|t2     -0.926    0.027  -33.707    0.000
+    overall_2|t3      0.557    0.027   20.267    0.000
+    overall_2|t4      1.826    0.027   66.462    0.000
+    dbrt_vrll_1|t1   -3.173    0.027 -115.502    0.000
+    dbrt_vrll_1|t2   -1.400    0.027  -50.976    0.000
+    dbrt_vrll_1|t3    0.217    0.027    7.906    0.000
+    dbrt_vrll_1|t4    2.031    0.027   73.938    0.000
+    dbrt_vrll_2|t1   -3.173    0.027 -115.502    0.000
+    dbrt_vrll_2|t2   -1.381    0.027  -50.252    0.000
+    dbrt_vrll_2|t3    0.468    0.027   17.049    0.000
+    dbrt_vrll_2|t4    2.364    0.027   86.035    0.000
+
+Variances:
+                   Estimate  Std.Err  z-value  P(&gt;|z|)
+   .overall_1         0.275                           
+   .overall_2         0.305                           
+   .deberta_vrll_1    0.160                           
+   .deberta_vrll_2    0.232                           
+    overall           1.000                           </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">semPaths</span>(</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  fit3,</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">nodeLabels=</span>fit3.labels,</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">sizeMan=</span><span class="dv">10</span>,</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">sizeLat=</span><span class="dv">10</span>,</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">edge.label.cex =</span> <span class="fl">1.15</span>,</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">label.cex =</span> <span class="fl">1.15</span>,</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">intercepts=</span><span class="cn">FALSE</span>,</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">residuals=</span><span class="cn">TRUE</span>,</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">thresholds=</span><span class="cn">FALSE</span>,</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">whatLabels=</span><span class="st">"est"</span>,</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">10</span>,<span class="dv">3</span>,<span class="dv">10</span>,<span class="dv">3</span>)</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="cfa_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
