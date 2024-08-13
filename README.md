@@ -1,4 +1,4 @@
-# Finetuning Transformers Methods Showcase
+# Assessing the Validity of Finetuned Transformers
 
 This repository contains code associated with a manuscript in progress. The goal of this project is to assess the validity of finetuned transformers for language proficiency assessment.
 
