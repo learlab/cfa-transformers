@@ -1,6 +1,9 @@
 # Finetuning Transformers Methods Showcase
 
-This repository contains code associated with a manuscript in progress. The goal of this project is to showcase the applied linguistics research applications of an emerging method known as finetuning transformers. This technique allows researchers to train highly effective models using a relatively small amount of labeled text samples. The models can then apply labels to unlabeled text samples, frequently with an accuracy that approaches that of a trained human rater.
+This repository contains code associated with a manuscript in progress. The goal of this project is to assess the validity of finetuned transformers for language proficiency assessment.
+
+1. Transformer model development code is organized under `/src` (Python)
+2. Statistical analysis is under `/factor-analysis` (R)
 
 ## Using this repository
 
