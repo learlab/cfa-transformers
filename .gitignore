@@ -8,4 +8,6 @@ src/__*
 *.Rproj
 *renv*
 *.png
+*.RData
+*.Rhistory
 cfa_files

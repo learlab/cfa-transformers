@@ -20,18 +20,55 @@ library(ggalluvial) # Sankey diagrams
 library(ggrepel) # Dodge overlapping text elements in ggplot
 library(corrplot) # For drawing correlation plots
 library(stargazer) # For outputting HTML tables
+library(philentropy) # Distance metrics (KL Divergence)
 ```
+
 
 # Data
 
 ```{r}
+train <- read_csv("../data/ellipse_partitioned.csv", show_col_types = FALSE) %>% 
+  filter(str_detect(partition, "train")) %>% 
+  select(c("overall_1", "overall_2")) %>% 
+  sapply(table) %>%
+  t() %>%
+  return()
+
+train <- train[, colnames(train) != "0"]
+probs <- train/rowSums(train)
+deberta_1_probs <- as.vector(probs[1,])
+deberta_2_probs <- as.vector(probs[2,])
+```
+
+
+```{r}
 data_path <- "../results/deberta-cfa.csv"
 
-df <- read_csv(data_path, show_col_types = FALSE) %>% 
+df_in <- read_csv(data_path, show_col_types = FALSE) %>% 
   rename_all(make.names) %>% 
   rename_all(tolower) %>% 
+  filter(overall_1 > 0)  %>%
+  return()
+
+df <- df_in %>% 
   mutate(across(starts_with("deberta"), round)) %>%
-  filter(overall_1 > 0) %>%
+  mutate(across(matches(".*_[12]$"), \(x) factor(
+    x,
+    ordered=TRUE,
+    levels=1:5,
+    labels=c("1", "2", "3", "4", "5")
+    )))
+
+# df_matched_dist <- df_in %>% 
+df <- df_in %>% 
+  mutate(deberta_overall_1 = cut(deberta_overall_1, 
+                       breaks = quantile(deberta_overall_1, probs=c(0, cumsum(deberta_1_probs))),
+                       labels = 1:5,
+                       include.lowest = TRUE)) %>% 
+  mutate(deberta_overall_2 = cut(deberta_overall_2, 
+                       breaks = quantile(deberta_overall_2, probs=c(0, cumsum(deberta_2_probs))),
+                       labels = 1:5,
+                       include.lowest = TRUE)) %>% 
   mutate(across(matches(".*_[12]$"), \(x) factor(
     x,
     ordered=TRUE,
@@ -44,6 +81,8 @@ df <- read_csv(data_path, show_col_types = FALSE) %>%
 ## EDA
 
 ```{r}
+table(df$overall_1,df$overall_2)
+
 ggplot(df, aes(x = overall_2, fill=overall_2)) +
   geom_bar(show.legend=FALSE) +
   theme_minimal() +
@@ -80,8 +119,68 @@ ggplot(data = df,
   )
 ggsave("sankey.png", width=7, height=4, dpi=300)
 ```
+```{r}
+df %>% 
+  select(matches(".*overall_[12]$")) %>%
+  sapply(table) %>% 
+  t()
+```
 
 # Performance of Finetuned Models
+
+```{r}
+
+plot_data <- df %>%
+  select(matches(".*overall_[12]$")) %>%
+  setNames(c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2"))
+
+# df %>% 
+#   select(matches(".*overall_[12]$")) %>% 
+#   summarize_all(list(Xmean=mean, Xsd=sd)) %>%
+#   pivot_longer(everything(), names_sep = "_X", names_to = c( "variable", ".value"))
+
+plot_data %>%
+  summary()
+
+plot_data %>%
+  sapply(table) %>%
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Method") %>% 
+  pivot_longer(-Method, names_to="Score", values_to="Count") %>%
+  ggplot(aes(fill=Method, y=Count, x=Score)) +
+    geom_bar(position="dodge", stat="identity") %>%
+  return()
+
+# Split Violin Plots
+# violin_data <- plot_data %>%
+#   pivot_longer(everything(), names_to="Method", values_to="Rating") %>%
+#   mutate(Rating = as.numeric(Rating)) %>% 
+#   return()
+# 
+# histoplot(Rating~Method, data=filter(violin_data, str_detect(Method, "^Rater")),
+#           col = "lightblue", plotCentre = "line", side = "left",
+#           drawRect=FALSE,
+#           breaks = seq(.5, 5.5), names=c("1", "2"), xlab="")
+# histoplot(Rating~Method, data=filter(violin_data, str_detect(Method, "^Deberta")),
+#           breaks = seq(0.5, 5.5),
+#           drawRect=FALSE,
+#           col = "palevioletred", plotCentre = "line", side = "right", add = T)
+# title(xlab = "Rating Set", ylab = "Rating")
+# legend("bottomright", fill = c("lightblue", "palevioletred"), legend = c("Rater", "Deberta"), title = "Method")
+
+# Relative Entropy Heatmap
+# df %>% 
+#   select(matches(".*overall_[12]$")) %>%
+#   sapply(table) %>% 
+#   t() %>% 
+#   distance(est.prob = "empirical") %>%
+#   magrittr::set_colnames(c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2")) %>%
+#   magrittr::set_rownames(c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2")) %>%
+#   corrplot(addCoef.col = 'black', cl.pos="b", type = 'lower', col = COL1('Reds'), is.corr=FALSE)
+
+```
+
 
 ```{r}
 get_perf_stats <- function(x, y) {
@@ -114,8 +213,8 @@ df %>%
 # Fit Models
 
 ```{r}
-spec <- ' overall =~ overall_1 + overall_2
-    + deberta_overall_1 + deberta_overall_2'
+spec <- ' overall =~ a*overall_1 + a*overall_2
+    + b*deberta_overall_1 + b*deberta_overall_2'
 
 # std.lv fixes the variance of latent factors to 1
 # required for model to be identified
@@ -130,8 +229,8 @@ fit1.labels <- c("Human 1", "Human 2", "LLM 1", "LLM 2", "Proficiency")
 fit1.ss <- standardizedSolution(fit1)
 
 fit2 <- cfa(
-  ' human =~ overall_1 + overall_2
-    llm =~ deberta_overall_1 + deberta_overall_2
+  ' human =~ a*overall_1 + a*overall_2
+    llm =~ b*deberta_overall_1 + b*deberta_overall_2
   ',
   data=df,
   std.lv=TRUE,
@@ -156,34 +255,6 @@ parameterEstimates(fit2) %>%
     ) %>% 
   print()
 fitMeasures(fit2, c("cfi","rmsea", "rmsea.ci.lower", "rmsea.ci.upper", "srmr"))
-```
-
-# Tables
-
-```{r, results="asis"}
-get_factors <- function(ss) {
-  factors <- ss[ss[,'op']=='=~', c(1, 3:5)]
-  return(factors)
-}
-
-get_factor_table <- function(factors) {
-  stargazer(
-    factors,
-    summary=FALSE,
-    type='html',
-    rownames=FALSE,
-    column.labels=c("Factor", "Variable", "Standardized Loading", "Standard Error"),
-    initial.zero=FALSE,
-    digits=3,
-    title='Factor loadings'
-    )
-}
-
-fit1.factors <- get_factors(fit1.ss)
-get_factor_table(fit1.factors)
-
-fit2.factors <- get_factors(fit2.ss)
-get_factor_table(fit2.factors)
 ```
 
 ```{r}
