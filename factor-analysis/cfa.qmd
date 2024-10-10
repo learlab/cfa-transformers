@@ -21,7 +21,7 @@ library(ggrepel) # Dodge overlapping text elements in ggplot
 library(corrplot) # For drawing correlation plots
 library(stargazer) # For outputting HTML tables
 library(philentropy) # Distance metrics (KL Divergence)
-library(ICC)
+library(irr)
 ```
 
 
@@ -51,14 +51,14 @@ df_in <- read_csv(data_path, show_col_types = FALSE) %>%
   filter(overall_1 > 0)  %>%
   return()
 
-# df <- df_in %>% 
-#   mutate(across(starts_with("deberta"), round)) %>%
-#   mutate(across(matches(".*_[12]$"), \(x) factor(
-#     x,
-#     ordered=TRUE,
-#     levels=1:5,
-#     labels=c("1", "2", "3", "4", "5")
-#     )))
+df_rounded <- df_in %>%
+  mutate(across(starts_with("deberta"), round)) %>%
+  mutate(across(matches(".*_[12]$"), \(x) factor(
+    x,
+    ordered=TRUE,
+    levels=1:5,
+    labels=c("1", "2", "3", "4", "5")
+    )))
 
 df <- df_in %>% 
   mutate(deberta_overall_1 = cut(deberta_overall_1, 
@@ -134,11 +134,6 @@ plot_data <- df %>%
   select(matches(".*overall_[12]$")) %>%
   setNames(c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2"))
 
-# df %>% 
-#   select(matches(".*overall_[12]$")) %>% 
-#   summarize_all(list(Xmean=mean, Xsd=sd)) %>%
-#   pivot_longer(everything(), names_sep = "_X", names_to = c( "variable", ".value"))
-
 plot_data %>%
   summary()
 
@@ -152,36 +147,28 @@ plot_data %>%
     geom_bar(position="dodge", stat="identity") %>%
   return()
 
-# Split Violin Plots
-# violin_data <- plot_data %>%
-#   pivot_longer(everything(), names_to="Method", values_to="Rating") %>%
-#   mutate(Rating = as.numeric(Rating)) %>% 
-#   return()
-# 
-# histoplot(Rating~Method, data=filter(violin_data, str_detect(Method, "^Rater")),
-#           col = "lightblue", plotCentre = "line", side = "left",
-#           drawRect=FALSE,
-#           breaks = seq(.5, 5.5), names=c("1", "2"), xlab="")
-# histoplot(Rating~Method, data=filter(violin_data, str_detect(Method, "^Deberta")),
-#           breaks = seq(0.5, 5.5),
-#           drawRect=FALSE,
-#           col = "palevioletred", plotCentre = "line", side = "right", add = T)
-# title(xlab = "Rating Set", ylab = "Rating")
-# legend("bottomright", fill = c("lightblue", "palevioletred"), legend = c("Rater", "Deberta"), title = "Method")
-
-# Relative Entropy Heatmap
-# df %>% 
-#   select(matches(".*overall_[12]$")) %>%
-#   sapply(table) %>% 
-#   t() %>% 
-#   distance(est.prob = "empirical") %>%
-#   magrittr::set_colnames(c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2")) %>%
-#   magrittr::set_rownames(c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2")) %>%
-#   corrplot(addCoef.col = 'black', cl.pos="b", type = 'lower', col = COL1('Reds'), is.corr=FALSE)
-
 ```
 
-# 
+# True-Score Correlation
+
+```{r}
+cols <- df[, c("overall_1", "overall_2", "deberta_overall_1", "deberta_overall_2")] %>% 
+  mutate_all(as.numeric)
+
+# Human raters are random, so model=twoway
+hum_reliability <- icc(cols[, 1:2], model="twoway", type="consistency")$value
+# All essays were rated by the same two LLMs, so model=oneway
+llm_reliability <- icc(cols[, 3:4], model="oneway", type="consistency")$value
+
+mean_human = rowMeans(cols[,1:2])
+mean_llm = rowMeans(cols[,3:4])
+true_corr = cor(mean_human, mean_llm, method="spearman") / sqrt(hum_reliability*llm_reliability)
+
+cat("Human Reliabality: ", hum_reliability)
+cat("\nLLM Reliability: ", llm_reliability)
+cat("\nTrue Correlation: ", true_corr)
+```
+
 
 ```{r}
 get_cor <- function(x, y, corfunc) {
