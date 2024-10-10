@@ -21,6 +21,7 @@ library(ggrepel) # Dodge overlapping text elements in ggplot
 library(corrplot) # For drawing correlation plots
 library(stargazer) # For outputting HTML tables
 library(philentropy) # Distance metrics (KL Divergence)
+library(ICC)
 ```
 
 
@@ -50,16 +51,15 @@ df_in <- read_csv(data_path, show_col_types = FALSE) %>%
   filter(overall_1 > 0)  %>%
   return()
 
-df <- df_in %>% 
-  mutate(across(starts_with("deberta"), round)) %>%
-  mutate(across(matches(".*_[12]$"), \(x) factor(
-    x,
-    ordered=TRUE,
-    levels=1:5,
-    labels=c("1", "2", "3", "4", "5")
-    )))
+# df <- df_in %>% 
+#   mutate(across(starts_with("deberta"), round)) %>%
+#   mutate(across(matches(".*_[12]$"), \(x) factor(
+#     x,
+#     ordered=TRUE,
+#     levels=1:5,
+#     labels=c("1", "2", "3", "4", "5")
+#     )))
 
-# df_matched_dist <- df_in %>% 
 df <- df_in %>% 
   mutate(deberta_overall_1 = cut(deberta_overall_1, 
                        breaks = quantile(deberta_overall_1, probs=c(0, cumsum(deberta_1_probs))),
@@ -179,6 +179,23 @@ plot_data %>%
 #   magrittr::set_rownames(c("Rater 1", "Rater 2", "Deberta 1", "Deberta 2")) %>%
 #   corrplot(addCoef.col = 'black', cl.pos="b", type = 'lower', col = COL1('Reds'), is.corr=FALSE)
 
+```
+
+# 
+
+```{r}
+get_cor <- function(x, y, corfunc) {
+  x <- as.numeric(x)
+  y <- as.numeric(y)
+  corfunc(x, y)
+  
+}
+irr_human = get_cor(df$overall_1, df$overall_2, cor)
+irr_llm = get_cor(df$deberta_overall_1, df$deberta_overall_2, cor)
+
+mean_human = rowMeans(cbind(df$overall_1, df$overall_2))
+mean_llm = rowMeans(cbind(df$deberta_overall_1, df$deberta_overall_2))
+true_corr = get_cor(mean_human, mean_llm, cor) / sqrt(irr_human*irr_llm)
 ```
 
 
