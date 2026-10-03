@@ -24,8 +24,9 @@ library(philentropy) # Distance metrics (KL Divergence)
 library(irr)
 ```
 
+## Calculate probability distribution of scores in the training data
 
-# Data
+This will be used to convert the floating point deberta outputs into ordinal-scaled scores.
 
 ```{r}
 train <- read_csv("../data/ellipse_partitioned.csv", show_col_types = FALSE) %>% 
@@ -41,6 +42,7 @@ deberta_1_probs <- as.vector(probs[1,])
 deberta_2_probs <- as.vector(probs[2,])
 ```
 
+## Data
 
 ```{r}
 data_path <- "../results/deberta-cfa.csv"
@@ -78,24 +80,11 @@ df <- df_in %>%
   
 ```
 
-## EDA
+## Disagreements
 
 ```{r}
 table(df$overall_1,df$overall_2)
 
-ggplot(df, aes(x = overall_2, fill=overall_2)) +
-  geom_bar(show.legend=FALSE) +
-  theme_minimal() +
-  scale_fill_viridis_d() +
-  geom_text(
-    aes(label = after_stat(count)),
-    stat = "count",
-    vjust = -0.5
-  ) +
-  labs(title = "Rater 1 Scores", x = "Score", y = "Count", fill="Score")
-```
-
-```{r}
 ggplot(data = df,
        aes(
          axis1 = overall_1,
@@ -103,7 +92,7 @@ ggplot(data = df,
          )) +
   scale_x_discrete(limits=c("Rater 1", "Rater 2")) +
   geom_alluvium(aes(fill=overall_1)) +
-  geom_stratum(alpha=0.15) +
+  geom_stratum(alpha=0.15, color="black") +
   geom_text_repel(
     stat="stratum",
     aes(label = after_stat(stratum)),
@@ -120,13 +109,40 @@ ggplot(data = df,
 ggsave("sankey.png", width=7, height=4, dpi=300)
 ```
 ```{r}
-df %>% 
-  select(matches(".*overall_[12]$")) %>%
-  sapply(table) %>% 
-  t()
+ggplot(data = df,
+       aes(
+         axis1 = overall_1,
+         axis2 = overall_2
+       )) +
+  scale_x_discrete(limits=c("Rater 1", "Rater 2")) +
+  # Using grayscale with different opacities
+  geom_alluvium(aes(fill = overall_1)) +
+  geom_stratum() +
+  geom_text_repel(
+    stat = "stratum",
+    aes(label = after_stat(stratum)),
+    direction = "y",
+    nudge_x = 0.25
+  ) +
+  # Grayscale palette
+  scale_fill_grey(start = .9, end = .0) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "bottom",
+    axis.text = element_text(color = "black")
+  ) +
+  labs(
+    title = "Overall Proficiency Scores by Rater",
+    y = "Count",
+    x = "Rater",
+    fill = "Score"
+  )
 ```
 
-# Performance of Finetuned Models
+
+
+## Score Distributions by Rating Method
 
 ```{r}
 
@@ -156,35 +172,21 @@ cols <- df[, c("overall_1", "overall_2", "deberta_overall_1", "deberta_overall_2
   mutate_all(as.numeric)
 
 # Human raters are random, so model=twoway
-hum_reliability <- icc(cols[, 1:2], model="twoway", type="consistency")$value
+hum_reliability <- icc(cols[, 1:2], model="twoway", type="agreement")
 # All essays were rated by the same two LLMs, so model=oneway
-llm_reliability <- icc(cols[, 3:4], model="oneway", type="consistency")$value
+llm_reliability <- icc(cols[, 3:4], model="oneway", type="agreement")
 
 mean_human = rowMeans(cols[,1:2])
 mean_llm = rowMeans(cols[,3:4])
-true_corr = cor(mean_human, mean_llm, method="spearman") / sqrt(hum_reliability*llm_reliability)
+observed_cor = cor.test(mean_human, mean_llm, method="pearson", exact = FALSE)
+true_corr = observed_cor$estimate / sqrt(hum_reliability$value*llm_reliability$value)
 
-cat("Human Reliabality: ", hum_reliability)
-cat("\nLLM Reliability: ", llm_reliability)
+cat("Human Reliabality: ", hum_reliability$value)
+cat("\nLLM Reliability: ", llm_reliability$value)
 cat("\nTrue Correlation: ", true_corr)
 ```
 
-
-```{r}
-get_cor <- function(x, y, corfunc) {
-  x <- as.numeric(x)
-  y <- as.numeric(y)
-  corfunc(x, y)
-  
-}
-irr_human = get_cor(df$overall_1, df$overall_2, cor)
-irr_llm = get_cor(df$deberta_overall_1, df$deberta_overall_2, cor)
-
-mean_human = rowMeans(cbind(df$overall_1, df$overall_2))
-mean_llm = rowMeans(cbind(df$deberta_overall_1, df$deberta_overall_2))
-true_corr = get_cor(mean_human, mean_llm, cor) / sqrt(irr_human*irr_llm)
-```
-
+## IRR
 
 ```{r}
 get_perf_stats <- function(x, y) {
@@ -204,6 +206,9 @@ get_perf_stats(df$overall_1, df$overall_2)
 cat("\n\nModel 1 vs Model 2")
 get_perf_stats(df$deberta_overall_1, df$deberta_overall_2)
 
+
+png(height=1200, width=2100, file="tau_heatmap.png", type="cairo")
+
 df %>% 
   select(overall_1, overall_2, deberta_overall_1, deberta_overall_2) %>% 
   mutate_all(as.numeric) %>% 
@@ -211,17 +216,21 @@ df %>%
   colpair_map(KendallTauB, .diagonal=1.0) %>%
   {.->>x;.} %>%
   as_matrix()  %>% 
-  corrplot(addCoef.col = 'white', cl.pos="b", type="lower") 
+  corrplot(addCoef.col = 'white', tl.col = 'black', tl.cex=4, number.cex=4, cl.pos="n", type="lower")
+
+dev.off()
 ```
 
 # Fit Models
 
 ```{r}
-spec <- ' overall =~ a*overall_1 + a*overall_2
-    + b*deberta_overall_1 + b*deberta_overall_2'
+spec <- '
+    overall =~
+    a*overall_1 + a*overall_2
+    + b*deberta_overall_1 + b*deberta_overall_2
+    '
 
 # std.lv fixes the variance of latent factors to 1
-# required for model to be identified
 fit1 <- cfa(
   spec,
   data = df,
